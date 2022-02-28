@@ -2,20 +2,29 @@ package com.example.photosbootcamp
 
 import android.Manifest
 import android.app.Activity
+import android.app.Notification
+import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Camera
+import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
 import android.widget.Toast
+import androidx.core.content.contentValuesOf
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+
+    var image_uri: Uri? = null
 
     companion object {
         private const val PERMISSION_CODE_IMAGE_PICK = 1000
         private const val IMAGE_PICK_CODE = 1001
         private const val CAMERA_CODE = 1002
+        private const val OPEN_CAMERA_CODE = 1012
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,7 +49,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openCamera() {
-        TODO("Not yet implemented")
+        val values = ContentValues()
+        values.put(MediaStore.Images.Media.TITLE, "nova foto")
+        values.put(MediaStore.Images.Media.DESCRIPTION, "Imagem capturada pela camera")
+
+        image_uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, image_uri)
+
+        startActivityForResult(cameraIntent, OPEN_CAMERA_CODE)
     }
 
     private fun pickImageFromGalery() {
@@ -53,6 +71,10 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode == IMAGE_PICK_CODE) {
             image_view.setImageURI(data?.data)
+        }
+
+        if (resultCode == Activity.RESULT_OK && requestCode == OPEN_CAMERA_CODE){
+            image_view.setImageURI(image_uri)
         }
     }
 
